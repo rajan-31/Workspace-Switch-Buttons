@@ -1,20 +1,47 @@
-This GNOME Shell extension adds buttons to switch to left and right workspace, and hides "Activities" button.
-
 ![preview](./content/images/preview.png)
 
-https://extensions.gnome.org/extension/6562/workspace-switch-buttons/
+[Full Screen Preview](./content/images/full_screen_preview.png)
 
-## Usage
+This GNOME Shell extension offers following features:
 
-Use GNOME Extension manager (or and any similar tool) and search for "Workspace Switch Buttons" OR follow these steps
+- Buttons to switch to left and right workspace
+- Shows index of active workspace (click it for overview)
+    - You can hide it (preferences/settings)
+- Hides "Activities" button
+    - You can turn this off (preferences/settings)
 
-- Add this folder to `~/.local/share/gnome-shell/extensions/`
+[<img src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true" alt="Get it on GNOME Extensions" height="100" align="middle">](https://extensions.gnome.org/extension/6562/workspace-switch-buttons/
+)
 
-- Press `alt` + `f2`, type `restart` and press `enter` to reload the GNOME desktop environment OR logout and log back in
+_Supported GNOME Shell versions: 42, 43, 44_
 
-- Run `gnome-extensions enable workspace-switch-buttons@rajan-31` in terminal
+<br>
 
----
+## Installation
+
+Use [GNOME Extension Manager](https://mattjakeman.com/apps/extension-manager) (or browser extension or any other tool) and search for "Workspace Switch Buttons" 
+
+OR follow these steps
+
+- Download this repo, name the folder "workspace-switch-buttons@rajan-31" and move it to `~/.local/share/gnome-shell/extensions/`
+
+- Restart the GNOME Shell
+
+    - For Wayland
+
+        Logout and log back in
+    
+    - For X11
+    
+        Press `alt` + `f2`, type `restart` and press `enter`
+
+- Run the command `gnome-extensions enable workspace-switch-buttons@rajan-31`
+
+<br>
+
+## Feedback/Contribute
+
+Feel free to create an issue if something is not working correctly. Any PRs are welcome.
 
 ## Devlopment
 
@@ -30,7 +57,7 @@ https://gnome-shell-extension-examples.readthedocs.io/en/latest/gsettings1.html
 
 <br>
 
-### Quick Reference
+__Quick Reference__
 
 - Create new GNOME Shell Extension
 
@@ -44,10 +71,36 @@ https://gnome-shell-extension-examples.readthedocs.io/en/latest/gsettings1.html
 
     `glib-compile-schemas ./schemas`
 
-- Copy settings schema to glib-2.0/schemas & compile
+- [no use in latest version] Copy settings schema to glib-2.0/schemas & compile
 
     ```bash
     sudo cp org.gnome.shell.extensions.workspace-switch-buttons.gschema.xml /usr/share/glib-2.0/schemas/
 
     sudo glib-compile-schemas /usr/share/glib-2.0/schemas/
     ```
+
+- Zip it
+    `zip ../workspace-switch-buttons@rajan-31.zip *`
+
+<!-- 
+    ### What to update after update
+
+    Code
+    - metadata.json => version, description
+    - images => preview, full screen preview
+    - schema => recompile
+    - Readme.ms => Description
+
+    Repo
+    - Releases => zip, changes
+
+    GNOME Extension Website
+    - Description
+    - Screenshot
+    - upload zip
+
+    ### More features/improvements
+
+    [ ] Wrap around on first and last workspace
+    [ ] all three button as single item
+ -->

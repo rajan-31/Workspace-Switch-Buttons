@@ -7,11 +7,6 @@ function init(metadata) {
     console.debug(`initializing ${metadata.name} Preferences`);
 }
 
-function buildPrefsWidget() {
-    return new Gtk.Label({
-        label: Me.metadata.name,
-    });
-}
 
 function fillPreferencesWindow(window) {
     /**
@@ -25,7 +20,7 @@ function fillPreferencesWindow(window) {
     window.add(prefsPage);
 
     // Load settings
-    const settings = Gio.Settings.new('org.gnome.shell.extensions.workspace-switch-buttons');
+    settings = ExtensionUtils.getSettings();
 
     /**
      * Preferences group

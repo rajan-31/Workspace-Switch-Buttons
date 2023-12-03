@@ -1,6 +1,6 @@
 {
   "name": "Workspace Switch Buttons",
-  "description": "Adds buttons to switch to left and right workspace, and hides \"Activities\" button",
+  "description": "Adds buttons to switch to left and right workspace, shows active workspace index, and hides \"Activities\" button",
   "uuid": "workspace-switch-buttons@rajan-31",
   "shell-version": [
     "42","43","44"

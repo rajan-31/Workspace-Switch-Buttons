@@ -1,54 +1,64 @@
 const { St, GLib, Clutter, Gio } = imports.gi;
 const Main = imports.ui.main;
-
-function switchToWorkspace(offset) {
-    try {
-        const currentIndex = global.workspace_manager.get_active_workspace_index();
-        const newIndex = currentIndex + offset;
-
-        if (newIndex >= 0 && newIndex < global.workspace_manager.n_workspaces) {
-            global.workspace_manager.get_workspace_by_index(newIndex).activate(global.get_current_time());
-        }
-    } catch (err) {
-        Main.notify(err + ": GNOME Extension workspace-switch-buttons experienced an error!");
-        console.log("workspace-switch-buttons:" + err);
-    }
-}
-
-// currrent workspace number as string (1 based indexing)
-function getActiveWorkspaceIndex() {
-    return String(global.workspace_manager.get_active_workspace_index() + 1)
-}
-
-
-let leftButton, centerButton, rightButton;
-let leftButtonConnection, centerButtonConnection, rightButtonConnection;
-let leftButtonIcon, rightButtonIcon;
-let activeIndexLabel, activeWorkspaceUpdate;
-
-let settings, settingsConnection1, settingsConnection2;;
+const ExtensionUtils = imports.misc.extensionUtils;
 
 
 class Extension {
     constructor() {
+        this.leftButton = null;
+        this.centerButton = null;
+        this.rightButton = null;
+        this.leftButtonConnection = null;
+        this.centerButtonConnection = null;
+        this.rightButtonConnection = null;
+        this.leftButtonIcon = null;
+        this.rightButtonIcon = null;
+        this.activeIndexLabel = null;
+        this.activeWorkspaceUpdate = null;
+        this.settings = null;
+        this.settingsConnection1 = null;
+        this.settingsConnection2 = null;
     }
+
+
+    // offset -1 for right, +1 for left
+    switchToWorkspace(offset) {
+        try {
+            const currentIndex = global.workspace_manager.get_active_workspace_index();
+            const newIndex = currentIndex + offset;
+
+            // newIndex validity check
+            if (newIndex >= 0 && newIndex < global.workspace_manager.n_workspaces) {
+                global.workspace_manager.get_workspace_by_index(newIndex).activate(global.get_current_time());
+            }
+        } catch (err) {
+            Main.notify(err + ": GNOME Extension workspace-switch-buttons experienced an error!");
+            console.log("workspace-switch-buttons:" + err);
+        }
+    }
+
+    // currrent workspace number as string (1 based indexing)
+    getActiveWorkspaceIndex() {
+        return String(global.workspace_manager.get_active_workspace_index() + 1)
+    }
+
 
     enable() {
 
         // Load settings
-        settings = Gio.Settings.new('org.gnome.shell.extensions.workspace-switch-buttons');
+        this.settings = ExtensionUtils.getSettings()
 
         // listen for preference updates
-        // switch 1
-        settingsConnection1 = settings.connect('changed::hide-activities-button', () => {
-            if (settings.get_boolean('hide-activities-button')) Main.panel.statusArea["activities"].hide();
+        // switch 1 update
+        this.settingsConnection1 = this.settings.connect('changed::hide-activities-button', () => {
+            if (this.settings.get_boolean('hide-activities-button')) Main.panel.statusArea["activities"].hide();
             else Main.panel.statusArea["activities"].show();
         });
-        // switch 2
-        settingsConnection2 = settings.connect('changed::hide-workspace-index', () => {
-            if (centerButton) {
-                if (settings.get_boolean('hide-workspace-index')) centerButton.hide();
-                else centerButton.show();
+        // switch 2 update
+        this.settingsConnection2 = this.settings.connect('changed::hide-workspace-index', () => {
+            if (this.centerButton) {
+                if (this.settings.get_boolean('hide-workspace-index')) this.centerButton.hide();
+                else this.centerButton.show();
             }
         });
 
@@ -56,69 +66,69 @@ class Extension {
          * Left button
         **/
 
-        leftButtonIcon = new St.Icon({
+        this.leftButtonIcon = new St.Icon({
             icon_name: 'go-previous-symbolic',
             style_class: 'system-status-icon',
         });
 
-        leftButton = new St.Bin({
+        this.leftButton = new St.Bin({
             style_class: 'panel-button',
             reactive: true,
             can_focus: true,
             track_hover: true
         });
 
-        leftButton.set_child(leftButtonIcon);
-        leftButtonConnection = leftButton.connect('button-press-event', () => switchToWorkspace(-1));
+        this.leftButton.set_child(this.leftButtonIcon);
+        this.leftButtonConnection = this.leftButton.connect('button-press-event', () => this.switchToWorkspace(-1));
 
         /**
          * Right button
         **/
 
-        rightButtonIcon = new St.Icon({
+        this.rightButtonIcon = new St.Icon({
             icon_name: 'go-next-symbolic',
             style_class: 'system-status-icon'
         });
 
-        rightButton = new St.Bin({
+        this.rightButton = new St.Bin({
             style_class: 'panel-button',
             reactive: true,
             can_focus: true,
             track_hover: true
         });
 
-        rightButton.set_child(rightButtonIcon);
-        rightButtonConnection = rightButton.connect('button-press-event', () => switchToWorkspace(1));
+        this.rightButton.set_child(this.rightButtonIcon);
+        this.rightButtonConnection = this.rightButton.connect('button-press-event', () => this.switchToWorkspace(1));
 
         /**
          * Center/index label and button
         **/
 
-        activeIndexLabel = new St.Label({
+        this.activeIndexLabel = new St.Label({
             text: "1",
             x_expand: true,
             y_align: Clutter.ActorAlign.CENTER
         });
 
         // change workspace index when workspace is changed
-        activeWorkspaceUpdate = global.workspace_manager.connect(
+        this.activeWorkspaceUpdate = global.workspace_manager.connect(
             'active-workspace-changed',
             () => {
-                activeIndexLabel.set_text(getActiveWorkspaceIndex());
+                this.activeIndexLabel.set_text(this.getActiveWorkspaceIndex());
             }
         );
 
-        centerButton = new St.Bin({
+        this.centerButton = new St.Bin({
             style_class: 'panel-button',
             reactive: true,
             can_focus: true,
             track_hover: true
         });
-        centerButton.set_child(activeIndexLabel);
-        centerButtonConnection = centerButton.connect('button-press-event', () => Main.overview.toggle());
+        this.centerButton.set_child(this.activeIndexLabel);
+        this.centerButtonConnection = this.centerButton.connect('button-press-event', () => Main.overview.toggle());
 
         // Set padding using CSS
-        activeIndexLabel.style = `
+        this.activeIndexLabel.style = `
             margin: 0 12px 0 12px;  /* Adjust the padding as needed */
         `;
 
@@ -126,61 +136,61 @@ class Extension {
          * Place buttons on top panel
         **/
 
-        Main.panel._leftBox.insert_child_at_index(leftButton, 0);
-        Main.panel._leftBox.insert_child_at_index(centerButton, 1);
-        Main.panel._leftBox.insert_child_at_index(rightButton, 2);
+        Main.panel._leftBox.insert_child_at_index(this.leftButton, 0);
+        Main.panel._leftBox.insert_child_at_index(this.centerButton, 1);
+        Main.panel._leftBox.insert_child_at_index(this.rightButton, 2);
 
 
-        if (settings.get_boolean('hide-workspace-index'))
-            centerButton.hide()
+        if (this.settings.get_boolean('hide-workspace-index'))
+            this.centerButton.hide()
 
-        if (settings.get_boolean('hide-activities-button') && Main.panel.statusArea["activities"] != null) {
+        if (this.settings.get_boolean('hide-activities-button') && Main.panel.statusArea["activities"] != null) {
             Main.panel.statusArea["activities"].hide();
         }
     }
 
     disable() {
 
-        if (settingsConnection1) settings.disconnect(settingsConnection1)
-        if (settingsConnection2) settings.disconnect(settingsConnection2)
+        if (this.settingsConnection1) this.settings.disconnect(this.settingsConnection1)
+        if (this.settingsConnection2) this.settings.disconnect(this.settingsConnection2)
 
         if (Main.panel.statusArea["activities"] != null) {
             Main.panel.statusArea["activities"].show();
         }
 
-        if (leftButton) {
-            Main.panel._leftBox.remove_child(leftButton);
+        if (this.leftButton) {
+            Main.panel._leftBox.remove_child(this.leftButton);
 
-            if (leftButtonConnection) {
-                leftButton.disconnect(leftButtonConnection);
-                leftButtonConnection = null;
+            if (this.leftButtonConnection) {
+                this.leftButton.disconnect(this.leftButtonConnection);
+                this.leftButtonConnection = null;
             }
-            leftButton.destroy();
-            leftButton = null;
+            this.leftButton.destroy();
+            this.leftButton = null;
         }
 
-        if (centerButton) {
-            Main.panel._leftBox.remove_child(centerButton);
-            if (centerButtonConnection) {
-                centerButton.disconnect(centerButtonConnection);
-                centerButtonConnection = null;
+        if (this.centerButton) {
+            Main.panel._leftBox.remove_child(this.centerButton);
+            if (this.centerButtonConnection) {
+                this.centerButton.disconnect(this.centerButtonConnection);
+                this.centerButtonConnection = null;
             }
-            centerButton.destroy();
-            centerButton = null;
+            this.centerButton.destroy();
+            this.centerButton = null;
         }
-        if (activeWorkspaceUpdate) {
-            global.workspace_manager.disconnect(activeWorkspaceUpdate);
-            activeWorkspaceUpdate = null;
+        if (this.activeWorkspaceUpdate) {
+            global.workspace_manager.disconnect(this.activeWorkspaceUpdate);
+            this.activeWorkspaceUpdate = null;
         }
 
-        if (rightButton) {
-            Main.panel._leftBox.remove_child(rightButton);
-            if (rightButtonConnection) {
-                rightButton.disconnect(rightButtonConnection);
-                rightButtonConnection = null;
+        if (this.rightButton) {
+            Main.panel._leftBox.remove_child(this.rightButton);
+            if (this.rightButtonConnection) {
+                this.rightButton.disconnect(this.rightButtonConnection);
+                this.rightButtonConnection = null;
             }
-            rightButton.destroy();
-            rightButton = null;
+            this.rightButton.destroy();
+            this.rightButton = null;
         }
     }
 }
