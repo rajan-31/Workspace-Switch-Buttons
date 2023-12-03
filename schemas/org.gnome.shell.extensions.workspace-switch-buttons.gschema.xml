@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema path="/org/gnome/shell/extensions/workspace-switch-buttons/" id="org.gnome.shell.extensions.workspace-switch-buttons" >
+    <key name="hide-activities-button" type="b">
+      <default>true</default>
+      <summary>Hide "Activities" Button</summary>
+      <description>Whether to hide the "Activities" button on the top panel</description>
+    </key>
+    <key name="hide-workspace-index" type="b">
+      <default>true</default>
+      <summary>Hide workspace index</summary>
+      <description>Whether to hide the workspace index on the top panel</description>
+    </key>
+  </schema>
+</schemalist>
