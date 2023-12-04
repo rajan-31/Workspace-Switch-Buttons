@@ -20,7 +20,7 @@ function fillPreferencesWindow(window) {
     window.add(prefsPage);
 
     // Load settings
-    settings = ExtensionUtils.getSettings();
+    window._settings = ExtensionUtils.getSettings();
 
     /**
      * Preferences group
@@ -44,13 +44,13 @@ function fillPreferencesWindow(window) {
 
     const row1Switch = new Gtk.Switch({
         valign: Gtk.Align.CENTER,
-        active: settings.get_boolean('hide-activities-button')
+        active: window._settings.get_boolean('hide-activities-button')
     });
     row1Label.add_suffix(row1Switch);
     row1Label.set_activatable_widget(row1Switch);
 
     // Connect signal to update settings on switch change
-    settings.bind(
+    window._settings.bind(
         'hide-activities-button',
         row1Switch,
         'active',
@@ -69,13 +69,13 @@ function fillPreferencesWindow(window) {
 
     const row2Switch = new Gtk.Switch({
         valign: Gtk.Align.CENTER,
-        active: settings.get_boolean('hide-workspace-index')
+        active: window._settings.get_boolean('hide-workspace-index')
     });
     row2Label.add_suffix(row2Switch);
     row2Label.set_activatable_widget(row2Switch);
 
     // Connect signal to update settings on switch change
-    settings.bind(
+    window._settings.bind(
         'hide-workspace-index',
         row2Switch,
         'active',
