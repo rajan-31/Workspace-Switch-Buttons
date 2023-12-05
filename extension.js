@@ -1,30 +1,119 @@
 const { St, GLib, Clutter, Gio } = imports.gi;
+
 const Main = imports.ui.main;
+
 const ExtensionUtils = imports.misc.extensionUtils;
 
-class Manager {
-    constructor() {
-        this.leftButton = null;
-        this.centerButton = null;
-        this.rightButton = null;
+class Switcher {
+    constructor(settings) {
+        this._settings = settings;
+        this._buttons = {};
+    }
 
-        this.leftButtonConnection = null;
-        this.centerButtonConnection = null;
-        this.rightButtonConnection = null;
+    addToPanel() {
+        this._createButtonsContainer();
+        Main.panel._leftBox.insert_child_at_index(this._buttonsContainer, 0);
 
-        this.leftButtonIcon = null;
-        this.rightButtonIcon = null;
+        this._connectSettings();
 
-        this.activeIndexLabel = null;
-        this.activeWorkspaceUpdate = null;
+        if (this._settings.get_boolean('hide-workspace-index')) {
+            this._buttons.center.hide();
+        }
 
-        this.settings = null;
-        this.settingsConnection1 = null;
-        this.settingsConnection2 = null;
+        if (this._settings.get_boolean('hide-activities-button')) {
+            Main.panel.statusArea.activities?.hide();
+        }
+    }
+
+    destroy() {
+        if (this._activeWorkspaceUpdateSignal) {
+            global.workspace_manager.disconnect(this._activeWorkspaceUpdateSignal);
+        }
+
+        this._buttonsContainer?.destroy();
+
+        if (!Main.sessionMode.isLocked) {
+            Main.panel.statusArea.activities?.show();
+        }
+    }
+
+    _connectSettings() {
+        this._settings.connect('changed::hide-activities-button', () => {
+            let activities = Main.panel.statusArea.activities;
+            if (this._settings.get_boolean('hide-activities-button')) {
+                activities.hide();
+            } else {
+                activities.show();
+            }
+        });
+
+        this._settings.connect('changed::hide-workspace-index', () => {
+            if (this._settings.get_boolean('hide-workspace-index')) {
+                this._buttons.center?.hide();
+            } else {
+                this._buttons.center?.show();
+            }
+        });
+    }
+
+    _createButtonsContainer() {
+        this._buttons.left = this._getButton('go-previous-symbolic').button;
+        this._buttons.left.connect('button-press-event', () => this._switchToWorkspace(-1));
+
+        this._buttons.right = this._getButton('go-next-symbolic').button;
+        this._buttons.right.connect('button-press-event', () => this._switchToWorkspace(1));
+
+        let centerButton = this._getButton(null, '1');
+        this._buttons.center = centerButton.button;
+        this._buttons.center.connect('button-press-event', () => Main.overview.toggle());
+
+        this._activeWorkspaceUpdateSignal = global.workspace_manager.connect(
+            'active-workspace-changed',
+            () => {
+                centerButton.label.set_text(this._getActiveWorkspaceIndex());
+            }
+        );
+
+        this._buttonsContainer = new St.BoxLayout({
+        });
+        this._buttonsContainer.add_child(this._buttons.left);
+        this._buttonsContainer.add_child(this._buttons.center);
+        this._buttonsContainer.add_child(this._buttons.right);
+    }
+
+    _getButton(iconName, labelText) {
+        let button = new St.Bin({
+            style_class: 'panel-button',
+            reactive: true,
+            can_focus: true,
+            track_hover: true
+        });
+
+        let icon = null;
+        if (iconName) {
+            icon = new St.Icon({
+                icon_name: iconName,
+                style_class: 'system-status-icon',
+            });
+            button.set_child(icon);
+        }
+
+        let label = null;
+        if (labelText) {
+            label = new St.Label({
+                text: labelText,
+                x_expand: true,
+                y_align: Clutter.ActorAlign.CENTER,
+                style: 'margin: 0 12px 0 12px;',
+            });
+            button.set_child(label);
+        }
+
+        return { button, icon, label };
     }
 
     // offset -1 for right, +1 for left
-    switchToWorkspace(offset) {
+    _switchToWorkspace(offset) {
         try {
             const currentIndex = global.workspace_manager.get_active_workspace_index();
             const newIndex = currentIndex + offset;
@@ -39,142 +128,21 @@ class Manager {
         }
     }
 
-    // currrent workspace number as string (1 based indexing)
-    getActiveWorkspaceIndex() {
-        return String(global.workspace_manager.get_active_workspace_index() + 1)
+    // current workspace number as string (1 based indexing)
+    _getActiveWorkspaceIndex() {
+        return String(global.workspace_manager.get_active_workspace_index() + 1);
     }
 }
 
 class Extension {
-    constructor() {
-        this.manager = null;
-    }
-
     enable() {
-        this.manager = new Manager();
-
-        // Load settings
-        this.manager.settings = ExtensionUtils.getSettings()
-
-        // listen for preference updates
-        // switch 1 update
-        this.manager.settingsConnection1 = this.manager.settings.connect('changed::hide-activities-button', () => {
-            if (this.manager.settings.get_boolean('hide-activities-button')) Main.panel.statusArea["activities"].hide();
-            else Main.panel.statusArea["activities"].show();
-        });
-        // switch 2 update
-        this.manager.settingsConnection2 = this.manager.settings.connect('changed::hide-workspace-index', () => {
-            if (this.manager.centerButton) {
-                if (this.manager.settings.get_boolean('hide-workspace-index')) this.manager.centerButton.hide();
-                else this.manager.centerButton.show();
-            }
-        });
-
-        /**
-         * Left button
-        **/
-
-        this.manager.leftButtonIcon = new St.Icon({
-            icon_name: 'go-previous-symbolic',
-            style_class: 'system-status-icon',
-        });
-
-        this.manager.leftButton = new St.Bin({
-            style_class: 'panel-button',
-            reactive: true,
-            can_focus: true,
-            track_hover: true
-        });
-
-        this.manager.leftButton.set_child(this.manager.leftButtonIcon);
-        this.manager.leftButtonConnection = this.manager.leftButton.connect('button-press-event', () => this.manager.switchToWorkspace(-1));
-
-        /**
-         * Right button
-        **/
-
-        this.manager.rightButtonIcon = new St.Icon({
-            icon_name: 'go-next-symbolic',
-            style_class: 'system-status-icon'
-        });
-
-        this.manager.rightButton = new St.Bin({
-            style_class: 'panel-button',
-            reactive: true,
-            can_focus: true,
-            track_hover: true
-        });
-
-        this.manager.rightButton.set_child(this.manager.rightButtonIcon);
-        this.manager.rightButtonConnection = this.manager.rightButton.connect('button-press-event', () => this.manager.switchToWorkspace(1));
-
-        /**
-         * Center/index label and button
-        **/
-
-        this.manager.activeIndexLabel = new St.Label({
-            text: "1",
-            x_expand: true,
-            y_align: Clutter.ActorAlign.CENTER
-        });
-
-        // change workspace index when workspace is changed
-        this.manager.activeWorkspaceUpdate = global.workspace_manager.connect(
-            'active-workspace-changed',
-            () => {
-                this.manager.activeIndexLabel.set_text(this.manager.getActiveWorkspaceIndex());
-            }
-        );
-
-        this.manager.centerButton = new St.Bin({
-            style_class: 'panel-button',
-            reactive: true,
-            can_focus: true,
-            track_hover: true
-        });
-        this.manager.centerButton.set_child(this.manager.activeIndexLabel);
-        this.manager.centerButtonConnection = this.manager.centerButton.connect('button-press-event', () => Main.overview.toggle());
-
-        // Set padding using CSS
-        this.manager.activeIndexLabel.style = `
-            margin: 0 12px 0 12px;  /* Adjust the padding as needed */
-        `;
-
-        /**
-         * Place buttons on top panel
-        **/
-
-        Main.panel._leftBox.insert_child_at_index(this.manager.leftButton, 0);
-        Main.panel._leftBox.insert_child_at_index(this.manager.centerButton, 1);
-        Main.panel._leftBox.insert_child_at_index(this.manager.rightButton, 2);
-
-
-        if (this.manager.settings.get_boolean('hide-workspace-index'))
-            this.manager.centerButton.hide()
-
-        if (this.manager.settings.get_boolean('hide-activities-button') && Main.panel.statusArea["activities"] != null) {
-            Main.panel.statusArea["activities"].hide();
-        }
+        this.switcher = new Switcher(ExtensionUtils.getSettings());
+        this.switcher.addToPanel();
     }
 
     disable() {
-        // make top panel as it looked without extension
-        if (Main.panel.statusArea["activities"] != null) {
-            Main.panel.statusArea["activities"].show();
-        }
-        if (this.manager.leftButton) {
-            Main.panel._leftBox.remove_child(this.manager.leftButton);
-        }
-        if (this.manager.centerButton) {
-            Main.panel._leftBox.remove_child(this.manager.centerButton);
-        }
-        if (this.manager.rightButton) {
-            Main.panel._leftBox.remove_child(this.manager.rightButton);
-        }
-
-        if (this.manager) {
-            this.manager = null;
-        }
+        this.switcher?.destroy();
+        this.switcher = null;
     }
 }
 

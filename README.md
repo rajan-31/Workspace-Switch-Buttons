@@ -10,8 +10,7 @@ This GNOME Shell extension offers following features:
 - Hides "Activities" button
     - You can turn this off (preferences/settings)
 
-[<img src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true" alt="Get it on GNOME Extensions" height="100" align="middle">](https://extensions.gnome.org/extension/6562/workspace-switch-buttons/
-)
+[<img src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true" alt="Get it on GNOME Extensions" height="100" align="middle">](https://extensions.gnome.org/extension/6562/workspace-switch-buttons/)
 
 _Supported GNOME Shell versions: 42, 43, 44_
 
@@ -89,7 +88,7 @@ __Quick Reference__
     - metadata.json => version, description
     - images => preview, full screen preview
     - schema => recompile
-    - Readme.ms => Description
+    - Readme.md => Description
 
     Repo
     - Releases => zip, changes
