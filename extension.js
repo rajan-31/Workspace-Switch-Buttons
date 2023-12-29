@@ -57,13 +57,13 @@ class Switcher {
     }
 
     _createButtonsContainer() {
-        this._buttons.left = this._getButton('go-previous-symbolic').button;
+        this._buttons.left = this._getButton('media-playback-start-rtl-symbolic').button;
         this._buttons.left.connect('button-press-event', () => this._switchToWorkspace(-1));
 
-        this._buttons.right = this._getButton('go-next-symbolic').button;
+        this._buttons.right = this._getButton('media-playback-start-symbolic').button;
         this._buttons.right.connect('button-press-event', () => this._switchToWorkspace(1));
 
-        let centerButton = this._getButton(null, '1');
+        let centerButton = this._getButton(null, this._getActiveWorkspaceIndex());
         this._buttons.center = centerButton.button;
         this._buttons.center.connect('button-press-event', () => Main.overview.toggle());
 

@@ -6,6 +6,6 @@
     "42","43","44"
   ],
   "settings-schema": "org.gnome.shell.extensions.workspace-switch-buttons",
-  "version":3,
+  "version":5,
   "url": "https://github.com/rajan-31/Workspace-Switch-Buttons"
 }

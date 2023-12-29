@@ -1,4 +1,4 @@
-![preview](./content/images/preview.png)
+![View on GitHub repo](./content/images/preview.png)
 
 [Full Screen Preview](./content/images/full_screen_preview.png)
 
@@ -81,6 +81,9 @@ __Quick Reference__
 - Zip it
     `zip ../workspace-switch-buttons@rajan-31.zip *`
 
+- Symbolic Icons
+    `/usr/share/icons/Yaru/scalable`
+
 <!-- 
     ### What to update after update
 
@@ -101,5 +104,8 @@ __Quick Reference__
     ### More features/improvements
 
     [ ] Wrap around on first and last workspace
-    [ ] all three button as single item
+    [ ] different placement options
+    
+    [*] use style_class
+    [*] all three button as single item
  -->
